@@ -27,89 +27,94 @@ export function Header({
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 px-6 py-4 flex items-center justify-between pointer-events-none backdrop-blur-md bg-[#0b0c10]/70 border-b border-white/5">
+    <header className="sticky top-0 z-40 w-full bg-[#0c0d12]/90 backdrop-blur-md border-b border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between text-xs">
       {/* Left Masthead */}
-      <div className="flex items-center gap-4 pointer-events-auto">
-        <div className="w-8 h-8 rounded border border-emerald-500/40 bg-emerald-950/30 flex items-center justify-center text-emerald-400 font-mono text-xs font-semibold tracking-wider shadow-[0_0_12px_rgba(16,185,129,0.2)]">
-          3D
+      <div className="flex items-center gap-3.5">
+        <div className="w-7 h-7 border border-white/20 bg-white/[0.04] flex items-center justify-center font-mono text-[11px] font-semibold text-white tracking-wider">
+          03
         </div>
-        <div>
+        <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs text-white/40 tracking-widest uppercase">STUDIO // SPATIAL</span>
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-mono text-[10px] tracking-[0.2em] text-white/40 uppercase">
+              ATELIER ORTHO // ARCH-VIZ
+            </span>
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
           </div>
-          <h1 className="font-display text-base font-bold tracking-tight text-white/90">
-            ISOMETRIC SANCTUARY <span className="font-mono text-xs text-emerald-400 font-normal ml-1">v2.4</span>
-          </h1>
+          <span className="font-display text-sm font-semibold tracking-tight text-white">
+            ISOMETRIC SANCTUARY <span className="font-mono text-[10px] text-white/40 font-normal">REF: 842</span>
+          </span>
         </div>
       </div>
 
-      {/* Center Lighting Mode Pills */}
-      <div className="hidden md:flex items-center bg-[#13161f]/90 border border-white/10 rounded-full p-1 gap-1 pointer-events-auto shadow-2xl">
-        {(Object.keys(LIGHTING_PRESETS) as LightingPreset[]).map((key) => {
+      {/* Center Lighting Environment Switcher */}
+      <div className="hidden lg:flex items-center border border-white/10 p-0.5 bg-[#12141c]">
+        {(Object.keys(LIGHTING_PRESETS) as LightingPreset[]).map((key, idx) => {
           const isActive = currentPreset === key;
+          const labels: Record<LightingPreset, string> = {
+            midnight: '01 // MIDNIGHT',
+            sunset: '02 // GOLDEN HOUR',
+            studio: '03 // NEUTRAL',
+            cyber: '04 // TOKYO NOIR',
+          };
           return (
             <button
               key={key}
-              id={`preset-${key}`}
+              id={`nav-preset-${key}`}
               onClick={() => onSelectPreset(key)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium tracking-wide transition-all duration-200 flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 font-mono text-[11px] transition-colors ${
                 isActive
-                  ? 'bg-white/15 text-white shadow-sm border border-white/10'
-                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                  ? 'bg-white text-black font-semibold'
+                  : 'text-white/50 hover:text-white hover:bg-white/5'
               }`}
             >
-              {key === 'midnight' && <Moon className="w-3.5 h-3.5 text-blue-400" />}
-              {key === 'sunset' && <Sun className="w-3.5 h-3.5 text-amber-400" />}
-              {key === 'studio' && <Sparkles className="w-3.5 h-3.5 text-slate-300" />}
-              {key === 'cyber' && <Terminal className="w-3.5 h-3.5 text-emerald-400" />}
-              <span className="capitalize">{key}</span>
+              {labels[key]}
             </button>
           );
         })}
       </div>
 
-      {/* Right Controls */}
-      <div className="flex items-center gap-2.5 pointer-events-auto">
-        {/* Model Status Indicator */}
+      {/* Right Actions */}
+      <div className="flex items-center gap-2">
+        {/* Model Asset Manager */}
         <button
           id="upload-model-btn"
           onClick={onOpenUploader}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono transition-all ${
+          className={`flex items-center gap-2 px-3 py-1.5 border font-mono text-[11px] transition-colors ${
             isCustomModelActive
-              ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-              : 'bg-[#141822]/90 border-white/10 text-white/70 hover:text-white hover:border-white/20'
+              ? 'border-emerald-500/60 bg-emerald-950/30 text-emerald-300'
+              : 'border-white/15 bg-white/[0.02] text-white/70 hover:text-white hover:border-white/30'
           }`}
           title="Switch or upload custom .glb model"
         >
           <UploadCloud className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">
-            {isCustomModelActive ? 'CUSTOM GLB' : 'LOAD .GLB'}
+            {isCustomModelActive ? 'CUSTOM MODEL' : 'IMPORT .GLB'}
           </span>
         </button>
 
-        {/* Ambient Audio Synthesizer */}
+        {/* Ambient Room Soundscape */}
         <button
           id="audio-toggle-btn"
           onClick={handleToggleAudio}
-          className={`p-2 rounded-lg border text-xs transition-all ${
+          className={`p-2 border transition-colors ${
             audioActive
-              ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-              : 'bg-[#141822]/90 border-white/10 text-white/50 hover:text-white hover:border-white/20'
+              ? 'border-white bg-white text-black'
+              : 'border-white/15 bg-white/[0.02] text-white/60 hover:text-white hover:border-white/30'
           }`}
-          title={audioActive ? 'Mute generative room audio' : 'Play ambient room soundscape'}
+          title={audioActive ? 'Mute ambient room audio' : 'Play ambient audio soundscape'}
         >
-          {audioActive ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          {audioActive ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
         </button>
 
-        {/* Snapshot Capture */}
+        {/* High-Resolution Viewport Render Snapshot */}
         <button
           id="snapshot-btn"
           onClick={onCaptureSnapshot}
-          className="p-2 rounded-lg border border-white/10 bg-[#141822]/90 text-white/70 hover:text-white hover:border-white/20 transition-all"
-          title="Capture high-resolution 3D viewport render"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 border border-white/15 bg-white/[0.02] text-white/70 hover:text-white hover:border-white/30 transition-colors font-mono text-[11px]"
+          title="Capture viewport render"
         >
-          <Camera className="w-4 h-4" />
+          <Camera className="w-3.5 h-3.5" />
+          <span className="hidden md:inline">RENDER</span>
         </button>
       </div>
     </header>

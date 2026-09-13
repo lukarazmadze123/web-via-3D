@@ -1,7 +1,7 @@
 import React from 'react';
-import { Sparkles, Eye, Info, CheckCircle2 } from 'lucide-react';
 import { MaterialSpec } from '../types';
 import { MATERIAL_SPECS } from '../data';
+import { Layers, Crosshair, ArrowUpRight } from 'lucide-react';
 
 interface MaterialInspectorProps {
   activeMaterialId: string | null;
@@ -15,130 +15,141 @@ export function MaterialInspector({
   const currentSpec = MATERIAL_SPECS.find((m) => m.id === activeMaterialId) || MATERIAL_SPECS[0];
 
   return (
-    <section className="relative z-20 bg-[#0c0d12] border-t border-white/5 px-6 lg:px-12 py-16">
-      <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 pb-6 border-b border-white/10 gap-4">
-          <div>
-            <div className="font-mono text-xs text-emerald-400 tracking-widest uppercase mb-1.5 flex items-center gap-2">
-              <span className="w-2 h-0.5 bg-emerald-400" />
-              PHYSICAL MATERIAL SPECIFICATION
+    <section className="relative z-20 bg-[#090a0e] border-t border-white/10 px-4 sm:px-8 py-16 lg:py-24">
+      <div className="max-w-[1720px] mx-auto">
+        {/* Section Masthead */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 pb-6 border-b border-white/10 gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 font-mono text-[11px] text-white/40 tracking-[0.15em] uppercase">
+              <span className="text-white font-semibold">PLATE 02</span>
+              <span>//</span>
+              <span>PBR MATERIAL SPECIMEN ARCHIVE</span>
             </div>
-            <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-white">
-              SURFACE FINISHES &amp; RADIANCE
+            <h3 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
+              SURFACE TAXONOMY &amp; OPTICAL REFLECTANCE
             </h3>
           </div>
-          <p className="text-white/50 text-xs md:text-sm font-sans max-w-md">
-            Click any material node below to visually highlight and inspect its PBR reflectance, emission intensity, and texture map attributes in the viewport.
+          <p className="text-white/50 text-xs sm:text-sm font-sans font-light max-w-lg leading-relaxed">
+            Select an architectural material specimen to isolate its node geometry inside the 3D diorama and audit its physical shader properties.
           </p>
         </div>
 
-        {/* Asymmetric Grid: Material Selector Cards (Left) & Active Inspector Drawer (Right) */}
+        {/* Specimen Index Grid + Active Spec Plinth */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left: Material Node Chips */}
-          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {MATERIAL_SPECS.map((mat) => {
+          {/* Specimen Index List (8 Columns) */}
+          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {MATERIAL_SPECS.map((mat, idx) => {
               const isSelected = activeMaterialId === mat.id;
+              const indexCode = `SPEC-${String(idx + 1).padStart(2, '0')}`;
               return (
                 <button
                   key={mat.id}
                   id={`mat-btn-${mat.id}`}
                   onClick={() => onSelectMaterial(isSelected ? null : mat.id)}
-                  className={`text-left p-4 rounded-xl border transition-all duration-200 group relative ${
+                  className={`text-left p-4 border transition-all duration-150 flex flex-col justify-between ${
                     isSelected
-                      ? 'bg-[#151922] border-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.12)]'
-                      : 'bg-[#111319]/80 border-white/5 hover:border-white/15 hover:bg-[#151821]'
+                      ? 'border-white bg-white text-black'
+                      : 'border-white/10 bg-[#101217] text-white hover:border-white/25 hover:bg-[#141620]'
                   }`}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2.5">
-                      {/* Color Swatch Dot with Glow */}
+                  <div className="flex items-center justify-between mb-3 font-mono text-[11px]">
+                    <div className="flex items-center gap-2">
                       <span
-                        className="w-4 h-4 rounded-full border border-white/20 shadow-sm"
-                        style={{
-                          backgroundColor: mat.color,
-                          boxShadow: mat.emissiveIntensity ? `0 0 10px ${mat.color}` : 'none',
-                        }}
+                        className="w-3 h-3 border border-black/20"
+                        style={{ backgroundColor: mat.color }}
                       />
-                      <span className="font-mono text-xs font-semibold text-white/90">
+                      <span className={`font-semibold ${isSelected ? 'text-black' : 'text-white'}`}>
                         {mat.code}
                       </span>
                     </div>
-                    <span className="font-mono text-[10px] uppercase px-2 py-0.5 rounded bg-white/5 text-white/50">
-                      {mat.type}
+                    <span className={isSelected ? 'text-black/50' : 'text-white/40'}>
+                      {indexCode}
                     </span>
                   </div>
 
-                  <div className="font-sans text-sm font-medium text-white/80 group-hover:text-white">
-                    {mat.name}
-                  </div>
-                  <div className="font-mono text-xs text-white/40 mt-1">
-                    Roughness: {mat.roughness} {mat.emissiveIntensity ? `• Emit: ${mat.emissiveIntensity}x` : ''}
+                  <div className="space-y-1">
+                    <div className={`font-display text-sm font-medium ${isSelected ? 'text-black' : 'text-white/90'}`}>
+                      {mat.name}
+                    </div>
+                    <div className={`font-mono text-[11px] ${isSelected ? 'text-black/70' : 'text-white/40'}`}>
+                      Roughness: {mat.roughness} {mat.emissiveIntensity ? `// Emit: ${mat.emissiveIntensity}x` : ''}
+                    </div>
                   </div>
 
-                  {isSelected && (
-                    <div className="absolute right-3 bottom-3 text-emerald-400">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                  )}
+                  <div className="mt-4 pt-2.5 border-t border-black/10 border-white/5 flex items-center justify-between font-mono text-[10px]">
+                    <span className={`uppercase ${isSelected ? 'text-black/60' : 'text-white/40'}`}>
+                      {mat.type}
+                    </span>
+                    <span className={isSelected ? 'text-black font-semibold' : 'text-white/40'}>
+                      {isSelected ? '[ ISOLATED ]' : '[ AUDIT ]'}
+                    </span>
+                  </div>
                 </button>
               );
             })}
           </div>
 
-          {/* Right: Technical Inspector Plinth */}
-          <div className="lg:col-span-5 bg-[#12151d] border border-white/10 rounded-2xl p-6 lg:p-8 space-y-6">
+          {/* Right: Technical Spec Plinth (4 Columns) */}
+          <div className="lg:col-span-4 border border-white/10 bg-[#111319] p-6 lg:p-7 space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div>
-                <span className="font-mono text-[10px] text-white/40 uppercase tracking-widest">
-                  ACTIVE NODE TELEMETRY
+                <span className="font-mono text-[10px] text-white/40 tracking-widest uppercase">
+                  SPECIMEN DOSSIER
                 </span>
-                <h4 className="font-display text-xl font-bold text-white mt-1">
+                <h4 className="font-display text-xl font-bold text-white mt-0.5">
                   {currentSpec.name}
                 </h4>
               </div>
               <div
-                className="w-10 h-10 rounded-lg border border-white/20 flex items-center justify-center font-mono text-xs"
-                style={{
-                  backgroundColor: currentSpec.color,
-                  boxShadow: currentSpec.emissiveIntensity ? `0 0 16px ${currentSpec.color}` : 'none',
-                }}
+                className="w-10 h-10 border border-white/20"
+                style={{ backgroundColor: currentSpec.color }}
               />
             </div>
 
-            <p className="text-white/60 text-sm leading-relaxed font-sans font-light">
+            <p className="text-white/60 text-xs sm:text-sm leading-relaxed font-sans font-light">
               {currentSpec.description}
             </p>
 
-            {/* Technical Parameter Readouts */}
-            <div className="grid grid-cols-2 gap-4 font-mono text-xs pt-2">
-              <div className="bg-[#0b0c10] border border-white/5 p-3 rounded-lg">
+            {/* Parameter Matrix */}
+            <div className="grid grid-cols-2 gap-2 font-mono text-xs pt-1">
+              <div className="border border-white/10 bg-[#0c0d12] p-3">
                 <div className="text-white/40 text-[10px] uppercase">HEX VALUE</div>
-                <div className="text-white font-medium mt-0.5">{currentSpec.color}</div>
+                <div className="text-white font-medium mt-1">{currentSpec.color}</div>
               </div>
-              <div className="bg-[#0b0c10] border border-white/5 p-3 rounded-lg">
-                <div className="text-white/40 text-[10px] uppercase">SHADER CLASS</div>
-                <div className="text-white font-medium mt-0.5">{currentSpec.type}</div>
+              <div className="border border-white/10 bg-[#0c0d12] p-3">
+                <div className="text-white/40 text-[10px] uppercase">PBR CLASS</div>
+                <div className="text-white font-medium mt-1">{currentSpec.type}</div>
               </div>
-              <div className="bg-[#0b0c10] border border-white/5 p-3 rounded-lg">
-                <div className="text-white/40 text-[10px] uppercase">MICRO-FACET ROUGHNESS</div>
-                <div className="text-emerald-400 font-medium mt-0.5">{currentSpec.roughness}</div>
+              <div className="border border-white/10 bg-[#0c0d12] p-3">
+                <div className="text-white/40 text-[10px] uppercase">ROUGHNESS VALUE</div>
+                <div className="text-white font-medium mt-1">{currentSpec.roughness}</div>
               </div>
-              <div className="bg-[#0b0c10] border border-white/5 p-3 rounded-lg">
-                <div className="text-white/40 text-[10px] uppercase">EMISSIVE MULTIPLIER</div>
-                <div className="text-amber-400 font-medium mt-0.5">
+              <div className="border border-white/10 bg-[#0c0d12] p-3">
+                <div className="text-white/40 text-[10px] uppercase">EMISSION COEFFICIENT</div>
+                <div className="text-white font-medium mt-1">
                   {currentSpec.emissiveIntensity ? `${currentSpec.emissiveIntensity}x` : '0.0 (None)'}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-mono text-white/40 bg-white/5 rounded-lg p-3">
-              <Info className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>
-                {activeMaterialId
-                  ? `Viewport highlighting node "${activeMaterialId}". Click again to reset.`
-                  : 'Select any card on the left to highlight its mesh inside the 3D room.'}
+            {/* Viewport Link Hint */}
+            <div className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between font-mono text-[11px] text-white/50">
+              <span className="flex items-center gap-2">
+                <Crosshair className="w-3.5 h-3.5 text-white/70" />
+                <span>
+                  {activeMaterialId
+                    ? `NODE "${activeMaterialId}" HIGHLIGHTED IN SCENE`
+                    : 'CLICK ANY SPECIMEN TO HIGHLIGHT'}
+                </span>
               </span>
+              {activeMaterialId && (
+                <button
+                  onClick={() => onSelectMaterial(null)}
+                  className="text-white underline hover:text-white/80"
+                >
+                  RESET
+                </button>
+              )}
             </div>
           </div>
         </div>

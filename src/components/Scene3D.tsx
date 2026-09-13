@@ -1,6 +1,6 @@
 import React, { Suspense, useRef, useEffect } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { OrbitControls, ContactShadows, Grid } from '@react-three/drei';
+import { OrbitControls, ContactShadows, Grid, Center } from '@react-three/drei';
 import * as THREE from 'three';
 import { CameraPreset, LightingConfig } from '../types';
 import { ProceduralRoom } from './ProceduralRoom';
@@ -14,6 +14,7 @@ interface Scene3DProps {
   activeMaterialId: string | null;
   customGlbUrl: string | null;
   showGrid: boolean;
+  allowZoom?: boolean;
   onCanvasReady?: (canvas: HTMLCanvasElement) => void;
 }
 
@@ -23,11 +24,11 @@ function CameraRig({ preset }: { preset: CameraPreset }) {
   const controlsRef = useThree((state) => state.controls as any);
 
   const targets: Record<CameraPreset, { pos: [number, number, number]; lookAt: [number, number, number] }> = {
-    isometric: { pos: [6.0, 5.0, 6.0], lookAt: [0, 0.9, 0] },
-    front: { pos: [0, 2.8, 7.2], lookAt: [0, 1.1, 0] },
-    top: { pos: [0.01, 8.5, 0.01], lookAt: [0, 0.4, 0] },
-    desk: { pos: [2.8, 2.1, 0.4], lookAt: [1.3, 1.2, -1.2] },
-    bed: { pos: [-3.0, 2.2, 0.8], lookAt: [-1.2, 0.8, -1.0] },
+    isometric: { pos: [5.0, 5.0, 5.0], lookAt: [0, 0.8, 0] },
+    front: { pos: [0, 2.4, 6.2], lookAt: [0, 0.9, 0] },
+    top: { pos: [0.01, 7.5, 0.01], lookAt: [0, 0.4, 0] },
+    desk: { pos: [2.5, 2.0, 0.4], lookAt: [1.2, 1.1, -1.0] },
+    bed: { pos: [-2.6, 2.0, 0.8], lookAt: [-1.1, 0.8, -0.9] },
   };
 
   const target = targets[preset];
@@ -40,7 +41,6 @@ function CameraRig({ preset }: { preset: CameraPreset }) {
   }, [preset]);
 
   useFrame((_, delta) => {
-    // Smooth damp towards desired camera position
     camera.position.lerp(desiredPos.current, Math.min(delta * 4, 0.15));
     if (controlsRef && controlsRef.target) {
       controlsRef.target.lerp(desiredLookAt.current, Math.min(delta * 4, 0.15));
@@ -69,6 +69,7 @@ export function Scene3D({
   activeMaterialId,
   customGlbUrl,
   showGrid,
+  allowZoom = false,
   onCanvasReady,
 }: Scene3DProps) {
   return (
@@ -81,28 +82,29 @@ export function Scene3D({
           toneMappingExposure: 1.15,
           preserveDrawingBuffer: true,
         }}
-        camera={{ position: [6.0, 5.0, 6.0], fov: 38 }}
+        camera={{ position: [5, 5, 5], fov: 45 }}
       >
         <color attach="background" args={[lighting.bgHex]} />
-        <fog attach="fog" args={[lighting.bgHex, 12, 28]} />
+        <fog attach="fog" args={[lighting.bgHex, 14, 30]} />
 
         <CanvasGrabber onReady={onCanvasReady} />
         <CameraRig preset={cameraPreset} />
 
-        {/* OrbitControls with silky smooth damping */}
+        {/* OrbitControls with strict damping, vertical limits, and scroll-safe zoom control */}
         <OrbitControls
           makeDefault
-          enableDamping
-          dampingFactor={0.06}
+          enableDamping={true}
+          dampingFactor={0.05}
+          enableZoom={allowZoom}
+          minDistance={3.5}
+          maxDistance={12.0}
+          minPolarAngle={Math.PI / 4}
+          maxPolarAngle={Math.PI / 2}
           autoRotate={autoRotate}
           autoRotateSpeed={0.8}
-          minDistance={3.2}
-          maxDistance={16}
-          maxPolarAngle={Math.PI / 2 - 0.05}
-          minPolarAngle={0.15}
         />
 
-        {/* Dynamic Lighting System */}
+        {/* Calibrated Studio Lighting */}
         <ambientLight color={lighting.ambientColor} intensity={lighting.ambientIntensity} />
 
         <directionalLight
@@ -121,7 +123,7 @@ export function Scene3D({
           shadow-bias={-0.0002}
         />
 
-        {/* Rim / Bounce light for spatial separation */}
+        {/* Rim / Fill Light */}
         <directionalLight
           position={[-6, 4, -5]}
           color="#94a3b8"
@@ -129,7 +131,6 @@ export function Scene3D({
         />
 
         {/* Specific Emissive Point Lights making materials pop */}
-        {/* Desk Screen Neon Green Glow */}
         <pointLight
           position={[1.4, 1.45, -1.0]}
           color={lighting.screenGlowColor}
@@ -138,7 +139,6 @@ export function Scene3D({
           decay={2}
         />
 
-        {/* Bedside Warm Amber Lamp Glow */}
         <pointLight
           position={[-2.0, 0.95, 0.7]}
           color={lighting.lampGlowColor}
@@ -147,25 +147,25 @@ export function Scene3D({
           decay={2}
         />
 
-        {/* Subtle Architectural Grid */}
+        {/* Subtle Architectural Metric Grid */}
         {showGrid && (
           <Grid
-            position={[0, -0.16, 0]}
+            position={[0, -0.01, 0]}
             args={[14, 14]}
             cellSize={0.5}
-            cellThickness={0.8}
-            cellColor="#334155"
+            cellThickness={0.7}
+            cellColor="#262b36"
             sectionSize={2.0}
-            sectionThickness={1.2}
-            sectionColor="#64748b"
-            fadeDistance={18}
+            sectionThickness={1.0}
+            sectionColor="#3d4454"
+            fadeDistance={16}
             fadeStrength={1.5}
           />
         )}
 
-        {/* 3D Model Rendering with Suspense and Fallback */}
+        {/* 3D Model Centered with Drei Center component to guarantee correct bounds & scale */}
         <Suspense fallback={null}>
-          <group position={[0, 0, 0]}>
+          <Center top position={[0, 0, 0]}>
             {customGlbUrl ? (
               <ModelErrorBoundary
                 fallback={
@@ -186,12 +186,12 @@ export function Scene3D({
                 activeMaterialId={activeMaterialId}
               />
             )}
-          </group>
+          </Center>
         </Suspense>
 
-        {/* Subtle Ground Contact Shadow */}
+        {/* Ground Contact Shadow */}
         <ContactShadows
-          position={[0, -0.155, 0]}
+          position={[0, -0.01, 0]}
           opacity={0.65}
           scale={7.5}
           blur={1.8}
